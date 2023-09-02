@@ -1,11 +1,11 @@
 "use client";
 
+import * as z from "zod";
+import { useForm } from "react-hook-form";
+import { useOrganization } from "@clerk/nextjs";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { usePathname, useRouter } from "next/navigation";
-import { useForm } from "react-hook-form";
-import * as z from "zod";
 
-import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -14,18 +14,21 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
-import { createThread } from "@/lib/actions/thread.action";
 import { ThreadValidation } from "@/lib/validations/thread";
+import { createThread } from "@/lib/actions/thread.actions";
 
 interface Props {
   userId: string;
 }
 
-function PostThread({ userId }: { userId: string }) {
+function PostThread({ userId }: Props) {
   const router = useRouter();
   const pathname = usePathname();
+
+  const { organization } = useOrganization();
 
   const form = useForm<z.infer<typeof ThreadValidation>>({
     resolver: zodResolver(ThreadValidation),
@@ -39,7 +42,7 @@ function PostThread({ userId }: { userId: string }) {
     await createThread({
       text: values.thread,
       author: userId,
-      communityId: null,
+      communityId: organization ? organization.id : null,
       path: pathname,
     });
 
@@ -61,18 +64,15 @@ function PostThread({ userId }: { userId: string }) {
                 Content
               </FormLabel>
               <FormControl className="no-focus border border-dark-4 bg-dark-3 text-light-1">
-                <Textarea
-                  rows={15}
-                  className="account-form_input no-focus"
-                  {...field}
-                />
+                <Textarea rows={15} {...field} />
               </FormControl>
               <FormMessage />
             </FormItem>
           )}
-        />{" "}
+        />
+
         <Button type="submit" className="bg-primary-500">
-          Post
+          Post Thread
         </Button>
       </form>
     </Form>
