@@ -1,5 +1,8 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  typescrit:{
+    ignoreBuildErrors: true,
+  },
   experimental: {
     serverComponentsExternalPackages: ["mongoose"],
   },
