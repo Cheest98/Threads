@@ -1,11 +1,12 @@
 "use client";
 
-import * as z from "zod";
-import { useForm } from "react-hook-form";
 import { useOrganization } from "@clerk/nextjs";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { usePathname, useRouter } from "next/navigation";
+import { useForm } from "react-hook-form";
+import * as z from "zod";
 
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -14,21 +15,25 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
-import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
-import { ThreadValidation } from "@/lib/validations/thread";
 import { createThread } from "@/lib/actions/thread.actions";
+import { ThreadValidation } from "@/lib/validations/thread";
 
 interface Props {
   userId: string;
+}
+
+interface Organization {
+  id: string;
 }
 
 function PostThread({ userId }: Props) {
   const router = useRouter();
   const pathname = usePathname();
 
-  const { organization } = useOrganization();
+  const organizationContext = useOrganization();
+  const organization = organizationContext.organization as Organization | null;
 
   const form = useForm<z.infer<typeof ThreadValidation>>({
     resolver: zodResolver(ThreadValidation),
@@ -39,24 +44,12 @@ function PostThread({ userId }: Props) {
   });
 
   const onSubmit = async (values: z.infer<typeof ThreadValidation>) => {
-
-    if(!organization) {
-      await createThread({
-        text: values.thread,
-        author: userId,
-        communityId: organization ? organization.id : null,
-        path: pathname,
-      });
-
-    } else {
-      await createThread({
-        text: values.thread,
-        author: userId,
-        communityId: organization ? organization.id : null,
-        path: pathname,
-      });
-
-    }
+    await createThread({
+      text: values.thread,
+      author: userId,
+      communityId: organization ? organization.id : null,
+      path: pathname,
+    });
 
     router.push("/");
   };
